@@ -41,5 +41,23 @@ namespace AddressProcessing.Tests.CSV
             var result = _fileSystem.FileInfo.FromFileName(filename).OpenText().ReadToEnd();
             Assert.That(result, Is.EqualTo("column1\tcolumn2\r\n"), "It should format and write the given values to the output file");
         }
+
+        [Test]
+        public void Should_write_multiple_lines_to_file()
+        {
+            // Arrange
+            _fileData = new MockFileData("");
+            _fileSystem.AddFile(filename, _fileData);
+
+            // Act (grr - see notes)
+            _csvWriter.Open(_fileSystem, filename);
+            _csvWriter.Write("column1a", "column2a");
+            _csvWriter.Write("column1b", "column2b");
+            _csvWriter.Close();
+
+            // Assert
+            var result = _fileSystem.FileInfo.FromFileName(filename).OpenText().ReadToEnd();
+            Assert.That(result, Is.EqualTo("column1a\tcolumn2a\r\ncolumn1b\tcolumn2b\r\n"), "It should format and write the given values to the output file");
+        }
     }
 }

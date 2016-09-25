@@ -12,23 +12,18 @@ namespace AddressProcessing.CSV
 
     public class CSVReader : ICSVReader
     {
-        private StreamReader _readerStream;
+        private TextReader _textReader;
 
         public void Open(IFileSystem fileSystem, string fileName)
         {
-            _readerStream = fileSystem.File.OpenText(fileName);
+            _textReader = fileSystem.File.OpenText(fileName);
         }
 
         public bool Read(out string column1, out string column2)
         {
-            const int firstColumn = 0;
-            const int secondColumn = 1;
+            var line = _textReader.ReadLine();
 
-            char[] separator = { '\t' };
-
-            var line = _readerStream.ReadLine();
-
-            if (line == null)
+            if (line == null || line.Length == 1)
             {
                 column1 = null;
                 column2 = null;
@@ -36,16 +31,16 @@ namespace AddressProcessing.CSV
                 return false;
             }
 
-            var columns = line.Split(separator);
-            column1 = columns[firstColumn];
-            column2 = columns[secondColumn];
+            var columns = line.Split('\t');
+            column1 = columns[0];
+            column2 = columns[1];
 
             return true;
         }
 
         public void Close()
         {
-            _readerStream?.Close();
+            _textReader?.Close();
         }
     }
 }

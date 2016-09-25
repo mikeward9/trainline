@@ -86,7 +86,10 @@ namespace AddressProcessing.Tests.CSV
             _csvReaderWriter.Open(filename, CSVReaderWriter.Mode.Read);
             string column1;
             string column2;
-            Assert.Throws<IndexOutOfRangeException>(() => _csvReaderWriter.Read(out column1, out column2), "It should throw an index out of range exception");
+            var result = _csvReaderWriter.Read(out column1, out column2);
+
+            // Assert
+            Assert.That(result, Is.False, "It should return false");
         }
 
         [Test]

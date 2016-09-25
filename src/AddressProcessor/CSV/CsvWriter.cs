@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.IO.Abstractions;
+using System.Linq;
 
 namespace AddressProcessing.CSV
 {
@@ -13,29 +14,17 @@ namespace AddressProcessing.CSV
     public class CSVWriter : ICSVWriter
     {
         private TextWriter _textWriter;
-        private IFileSystem _fileSystem;
 
         public void Open(IFileSystem fileSystem, string fileName)
         {
-            _fileSystem = fileSystem;
-            var fileInfo = _fileSystem.FileInfo.FromFileName(fileName);
+            var fileInfo = fileSystem.FileInfo.FromFileName(fileName);
             _textWriter = fileInfo.CreateText();
         }
 
         public void Write(params string[] columns)
         {
-            var output = "";
-
-            for (var i = 0; i < columns.Length; i++)
-            {
-                output += columns[i];
-                if ((columns.Length - 1) != i)
-                {
-                    output += "\t";
-                }
-            }
-
-            _textWriter.WriteLine(output);
+            var csv = columns.Aggregate((current, next) => current + '\t' + next);
+            _textWriter.WriteLine(csv);
         }
 
         public void Close()

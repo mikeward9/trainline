@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Abstractions;
-using AddressProcessing.CSV;
-using Moq;
-using NUnit.Framework;
 using System.IO.Abstractions.TestingHelpers;
+using AddressProcessing.CSV;
+using NUnit.Framework;
+
 namespace AddressProcessing.Tests.CSV
 {
     [TestFixture]
@@ -44,17 +41,21 @@ namespace AddressProcessing.Tests.CSV
         }
 
         [Test]
-        public void Should_throw_when_reading_out_incorrectly_formatted_file()
+        public void Should_return_false_when_reading_out_incorrectly_formatted_file()
         {
             // Arrange
             _fileData = new MockFileData(" ");
             _fileSystem.AddFile(filename, _fileData);
 
-            // Assert on Act
+            // Act
             _csvReader.Open(_fileSystem, filename);
             string column1;
             string column2;
-            Assert.Throws<IndexOutOfRangeException>(() => _csvReader.Read(out column1, out column2), "It should throw an index out of range exception");
+            var result = _csvReader.Read(out column1, out column2);
+            _csvReader.Close();
+
+            // Assert
+            Assert.That(result, Is.False, "It should return false");
         }
 
         [Test]

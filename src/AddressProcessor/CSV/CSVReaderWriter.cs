@@ -8,6 +8,7 @@ namespace AddressProcessing.CSV
            Assume this code is in production and backwards compatibility must be maintained.
     */
 
+    [Obsolete("Obsolete - use CSVReader and CSVWriter instead")]
     public class CSVReaderWriter
     {
         private readonly IFileSystem _fileSystem;
@@ -18,9 +19,9 @@ namespace AddressProcessing.CSV
         {
         }
 
-        public CSVReaderWriter(IFileSystem fileSystem, ICSVWriter icsvWriter, ICSVReader csvReader)
+        public CSVReaderWriter(IFileSystem fileSystem, ICSVWriter csvWriter, ICSVReader csvReader)
         {
-            _csvWriter = icsvWriter;
+            _csvWriter = csvWriter;
             _csvReader = csvReader;
             _fileSystem = fileSystem;
         }
@@ -48,6 +49,7 @@ namespace AddressProcessing.CSV
             _csvWriter.Write(columns);
         }
 
+        [Obsolete("Obsolete - method achieves nothing, see notes")]
         public bool Read(string column1, string column2)
         {
             return true;
