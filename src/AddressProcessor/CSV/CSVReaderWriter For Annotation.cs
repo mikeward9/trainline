@@ -8,9 +8,11 @@ namespace AddressProcessing.CSV
 
         Please leave the rest of this file as it is so we can discuss your concerns during the next stage of the interview process.
         
-        *)
-        *)
-        *)
+        *) What is the responsibility of this class? Does the fact that it performs both reading and writing break SRP? Consider breaking into separate components to handle these things separately.
+        *) Is it prudent to make it possible leave a StreamReader open? What would happen if another component tried to access a file that the StreamReader had open? What would happen if a consumer tried to do a write whilst the StreamReader was open? What would happen if a consumer of this class didn't close the StreamReader? Personally I'd explore if it was possible to manage the open/close state at the time you need to do a read or write. If not I'd suggest putting in guards to gracefully catch these cases.
+        *) How might you go about unit testing this class? How could you get a handle on the FileInfo, or the StreamReader / StreamWriter to assert that they are behaving as expected? Consider depending on an abstract class or interface in either the constructor or a property, that we can swap out for a mock.  
+        *) What is the purpose of bool Read(string column1, string column2)? The parameters are strings which behave like value types, so setting them later on in the function has no meaning. I believe the statement "if (columns.Length == 0)" represents an impossible scenario, see https://dotnetfiddle.net/J5jl6c . Given that information, it looks as though this method doesn't do anything, other than fall over when the source file data is the wrong shape, which doesn't look intentional. What real guards are there against incorrectly formatted data? Consider adding some.
+        *) It's common to fail a review on badly formatted code. Run ReSharper! It's quick and in this class it'll pick up irregulaties in casing, tell you about unecessary type declarations and point out the redundant code from the previous point. Code is way easier to maintain when it conforms to a standard - StyleCop and Code Analysis would be an extension to this point.
     */
 
     public class CSVReaderWriterForAnnotation

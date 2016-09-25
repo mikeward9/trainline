@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Abstractions;
 
 namespace AddressProcessing.CSV
 {
@@ -10,58 +11,66 @@ namespace AddressProcessing.CSV
 
     public class CSVReaderWriter
     {
-        private StreamReader _readerStream = null;
-        private StreamWriter _writerStream = null;
+        private readonly IFileSystem _fileSystem;
+
+        private StreamReader _readerStream;
+        private TextWriter _writerStream;
+
+        public CSVReaderWriter() : this(new FileSystem())
+        {
+        }
+
+        public CSVReaderWriter(IFileSystem fileSystem)
+        {
+            _fileSystem = fileSystem;
+        }
 
         [Flags]
         public enum Mode { Read = 1, Write = 2 };
 
         public void Open(string fileName, Mode mode)
         {
-            if (mode == Mode.Read)
+            switch (mode)
             {
-                _readerStream = File.OpenText(fileName);
-            }
-            else if (mode == Mode.Write)
-            {
-                FileInfo fileInfo = new FileInfo(fileName);
-                _writerStream = fileInfo.CreateText();
-            }
-            else
-            {
-                throw new Exception("Unknown file mode for " + fileName);
+                case Mode.Read:
+                    _readerStream = _fileSystem.File.OpenText(fileName);
+                    break;
+                case Mode.Write:
+                    var fileInfo = _fileSystem.FileInfo.FromFileName(fileName);
+                    _writerStream = fileInfo.CreateText();
+                    break;
+                default:
+                    throw new Exception("Unknown file mode for " + fileName);
             }
         }
 
         public void Write(params string[] columns)
         {
-            string outPut = "";
+            var output = "";
 
-            for (int i = 0; i < columns.Length; i++)
+            for (var i = 0; i < columns.Length; i++)
             {
-                outPut += columns[i];
+                output += columns[i];
                 if ((columns.Length - 1) != i)
                 {
-                    outPut += "\t";
+                    output += "\t";
                 }
             }
-
-            WriteLine(outPut);
+          
+            _writerStream.WriteLine(output);
         }
 
         public bool Read(string column1, string column2)
         {
-            const int FIRST_COLUMN = 0;
-            const int SECOND_COLUMN = 1;
-
-            string line;
-            string[] columns;
+            const int firstColumn = 0;
+            const int secondColumn = 1;
 
             char[] separator = { '\t' };
 
-            line = ReadLine();
-            columns = line.Split(separator);
+            var line = ReadLine();
+            var columns = line.Split(separator);
 
+            // I don't think this can be reached so not testing https://dotnetfiddle.net/J5jl6c
             if (columns.Length == 0)
             {
                 column1 = null;
@@ -71,8 +80,8 @@ namespace AddressProcessing.CSV
             }
             else
             {
-                column1 = columns[FIRST_COLUMN];
-                column2 = columns[SECOND_COLUMN];
+                column1 = columns[firstColumn];
+                column2 = columns[secondColumn];
 
                 return true;
             }
@@ -80,15 +89,12 @@ namespace AddressProcessing.CSV
 
         public bool Read(out string column1, out string column2)
         {
-            const int FIRST_COLUMN = 0;
-            const int SECOND_COLUMN = 1;
-
-            string line;
-            string[] columns;
+            const int firstColumn = 0;
+            const int secondColumn = 1;
 
             char[] separator = { '\t' };
 
-            line = ReadLine();
+            var line = ReadLine();
 
             if (line == null)
             {
@@ -98,29 +104,25 @@ namespace AddressProcessing.CSV
                 return false;
             }
 
-            columns = line.Split(separator);
+            var columns = line.Split(separator);
 
+            // I don't think this can be reached so not testing https://dotnetfiddle.net/J5jl6c
             if (columns.Length == 0)
             {
                 column1 = null;
                 column2 = null;
 
                 return false;
-            } 
+            }
             else
             {
-                column1 = columns[FIRST_COLUMN];
-                column2 = columns[SECOND_COLUMN];
+                column1 = columns[firstColumn];
+                column2 = columns[secondColumn];
 
                 return true;
             }
         }
-
-        private void WriteLine(string line)
-        {
-            _writerStream.WriteLine(line);
-        }
-
+        
         private string ReadLine()
         {
             return _readerStream.ReadLine();
@@ -128,15 +130,9 @@ namespace AddressProcessing.CSV
 
         public void Close()
         {
-            if (_writerStream != null)
-            {
-                _writerStream.Close();
-            }
+            _writerStream?.Close();
 
-            if (_readerStream != null)
-            {
-                _readerStream.Close();
-            }
+            _readerStream?.Close();
         }
     }
 }
