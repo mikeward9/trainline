@@ -6,7 +6,7 @@ using NUnit.Framework;
 namespace AddressProcessing.Tests.CSV
 {
     [TestFixture]
-    public class CSVReaderWriterTests
+    public class CSVReaderWriterIntegrationTests
     {
         private string filename = "C:\\filename.txt";
 
@@ -19,7 +19,9 @@ namespace AddressProcessing.Tests.CSV
         public void SetUp()
         {
             _fileSystem = new MockFileSystem();
-            _csvReaderWriter = new CSVReaderWriter(_fileSystem);
+            var csvWriter = new CSVWriter();
+            var csvReader = new CSVReader();
+            _csvReaderWriter = new CSVReaderWriter(_fileSystem, csvWriter, csvReader);
         }
 
         [Test]
@@ -28,40 +30,15 @@ namespace AddressProcessing.Tests.CSV
             // Arrange
             _fileData = new MockFileData("");
             _fileSystem.AddFile(filename, _fileData);
-            var columnsToWrite = new[] { "column1", "column2" };
 
             // Act (grr - see notes)
             _csvReaderWriter.Open(filename, CSVReaderWriter.Mode.Write);
-            _csvReaderWriter.Write(columnsToWrite);
+            _csvReaderWriter.Write("column1", "column2");
             _csvReaderWriter.Close();
 
             // Assert
             var result = _fileSystem.FileInfo.FromFileName(filename).OpenText().ReadToEnd();
             Assert.That(result, Is.EqualTo("column1\tcolumn2\r\n"), "It should format and write the given values to the output file");
-        }
-
-        [Test]
-        public void Should_throw_when_reading_empty_file()
-        {
-            // Arrange
-            _fileData = new MockFileData("");
-            _fileSystem.AddFile(filename, _fileData);
-
-            // Assert on Act
-            _csvReaderWriter.Open(filename, CSVReaderWriter.Mode.Read);
-            Assert.Throws<NullReferenceException>(()=> _csvReaderWriter.Read("apparentlyUnused1", "apparentlyUnused2"), "It should throw a null reference exception");
-        }
-
-        [Test]
-        public void Should_throw_when_reading_incorrectly_formatted_file()
-        {
-            // Arrange
-            _fileData = new MockFileData(" ");
-            _fileSystem.AddFile(filename, _fileData);
-
-            // Assert on Act
-            _csvReaderWriter.Open(filename, CSVReaderWriter.Mode.Read);
-            Assert.Throws<IndexOutOfRangeException>(()=> _csvReaderWriter.Read("apparentlyUnused1", "apparentlyUnused2"), "It should throw an index out of range exception");
         }
 
         [Test]
@@ -151,11 +128,12 @@ namespace AddressProcessing.Tests.CSV
 
             // Assert
             Assert.That(resultA, Is.True, "It should return true when parsing the first line");
-            Assert.That(column1A, Is.EqualTo("column1a"), "It should populate the first column parameter with the first value read from the first line");
-            Assert.That(column2A, Is.EqualTo("column2a"), "It should populate the second column parameter with the second value read from the first line");
+            Assert.That(column1A, Is.EqualTo("column1a"), "It should populate the first column parameter with the correct value");
+            Assert.That(column2A, Is.EqualTo("column2a"), "It should populate the second column parameter with the correct value");
+
             Assert.That(resultB, Is.True, "It should return true when parsing the second line");
-            Assert.That(column1B, Is.EqualTo("column1b"), "It should populate the first column parameter with the first value read from the second line");
-            Assert.That(column2B, Is.EqualTo("column2b"), "It should populate the second column parameter with the second value read from the second line");
+            Assert.That(column1B, Is.EqualTo("column1b"), "It should populate the first column parameter with the correct value");
+            Assert.That(column2B, Is.EqualTo("column2b"), "It should populate the second column parameter with the correct value");
         }
     }
 }
