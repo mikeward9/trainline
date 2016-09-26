@@ -20,10 +20,12 @@ namespace AddressProcessing.Tests.CSV.Unit
         }
 
         [Test]
-        public void Should_create_TextWriter_from_file_when_opening()
+        public void Should_create_TextReader_from_file_when_opening()
         {
             // Arrange
-            var streamFromFile = new StreamReader("notempty");
+            var stream = new Mock<Stream>();
+            stream.Setup(x => x.CanRead).Returns(true);
+            var streamFromFile = new StreamReader(stream.Object);
             _fileSystem.Setup(x => x.File.OpenText("filename.txt")).Returns(streamFromFile);
 
             // Act
