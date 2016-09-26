@@ -6,30 +6,36 @@ namespace AddressProcessing.CSV
 {
     public interface ICSVWriter
     {
-        void Open(IFileSystem fileSystem, string fileName);
+        void Open(string fileName);
         void Write(string[] columns);
         void Close();
     }
 
     public class CSVWriter : ICSVWriter
     {
-        private TextWriter _textWriter;
+        private readonly IFileSystem _fileSystem;
+        protected TextWriter TextWriter;
 
-        public void Open(IFileSystem fileSystem, string fileName)
+        public CSVWriter(IFileSystem fileSystem)
         {
-            var fileInfo = fileSystem.FileInfo.FromFileName(fileName);
-            _textWriter = fileInfo.CreateText();
+            _fileSystem = fileSystem;
+        }
+
+        public void Open(string fileName)
+        {
+            var fileInfo = _fileSystem.FileInfo.FromFileName(fileName);
+            TextWriter = fileInfo.CreateText();
         }
 
         public void Write(params string[] columns)
         {
             var csv = columns.Aggregate((current, next) => current + '\t' + next);
-            _textWriter.WriteLine(csv);
+            TextWriter.WriteLine(csv);
         }
 
         public void Close()
         {
-            _textWriter?.Close();
+            TextWriter?.Close();
         }
     }
 }

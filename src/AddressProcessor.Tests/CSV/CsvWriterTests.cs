@@ -1,63 +1,78 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.IO.Abstractions;
 using AddressProcessing.CSV;
 using Moq;
 using NUnit.Framework;
-using System.IO.Abstractions.TestingHelpers;
+
 namespace AddressProcessing.Tests.CSV
 {
     [TestFixture]
     public class CSVWriterTests
     {
-        private string filename = "C:\\filename.txt";
-
-        private MockFileSystem _fileSystem;
-        private MockFileData _fileData;
-
-        private CSVWriter _csvWriter;
+        private CSVWriterTestDouble _csvWriter;
+        private Mock<IFileSystem> _fileSystem;
 
         [SetUp]
         public void SetUp()
         {
-            _fileSystem = new MockFileSystem();
-            _csvWriter = new CSVWriter();
+            _fileSystem = new Mock<IFileSystem>();
+            _csvWriter = new CSVWriterTestDouble(_fileSystem.Object);
         }
 
         [Test]
-        public void Should_write_columns_to_file()
+        public void Should_create_TextWriter_from_file_when_opening()
         {
             // Arrange
-            _fileData = new MockFileData("");
-            _fileSystem.AddFile(filename, _fileData);
+            var fileInfoBase = new Mock<FileInfoBase>();
+            var streamFromFile = new StreamWriter("notempty");
+            fileInfoBase.Setup(x => x.CreateText()).Returns(streamFromFile);
+            _fileSystem.Setup(x => x.FileInfo.FromFileName("filename.txt")).Returns(fileInfoBase.Object);
 
-            // Act (grr - see notes)
-            _csvWriter.Open(_fileSystem, filename);
+            // Act
+            _csvWriter.Open("filename.txt");
+
+            // Asserrt
+            Assert.That(_csvWriter.TextWriter, Is.SameAs(streamFromFile), "It should create the TextWriter using the specified file");
+        }
+
+        [Test]
+        public void Should_write_to_TextWriter_on_write()
+        {
+            // Arrange
+            var textWriter = new Mock<TextWriter>();
+            _csvWriter.TextWriter = textWriter.Object;
+
+            // Act
             _csvWriter.Write("column1", "column2");
-            _csvWriter.Close();
 
             // Assert
-            var result = _fileSystem.FileInfo.FromFileName(filename).OpenText().ReadToEnd();
-            Assert.That(result, Is.EqualTo("column1\tcolumn2\r\n"), "It should format and write the given values to the output file");
+            textWriter.Verify(x=>x.WriteLine("column1\tcolumn2"), "It should format and write the input to the TextWriter");
         }
 
         [Test]
-        public void Should_write_multiple_lines_to_file()
+        public void Should_close_TextWriter_on_close()
         {
             // Arrange
-            _fileData = new MockFileData("");
-            _fileSystem.AddFile(filename, _fileData);
+            var textWriter = new Mock<TextWriter>();
+            _csvWriter.TextWriter = textWriter.Object;
 
-            // Act (grr - see notes)
-            _csvWriter.Open(_fileSystem, filename);
-            _csvWriter.Write("column1a", "column2a");
-            _csvWriter.Write("column1b", "column2b");
+            //Act
             _csvWriter.Close();
-
             // Assert
-            var result = _fileSystem.FileInfo.FromFileName(filename).OpenText().ReadToEnd();
-            Assert.That(result, Is.EqualTo("column1a\tcolumn2a\r\ncolumn1b\tcolumn2b\r\n"), "It should format and write the given values to the output file");
+            textWriter.Verify(x => x.Close(), "It should close the TextWriter");
+        }
+    }
+
+    public class CSVWriterTestDouble : CSVWriter
+    {
+        public CSVWriterTestDouble(IFileSystem fileSystem) : base(fileSystem)
+        {
+        }
+
+        public TextWriter TextWriter
+        {
+            get { return base.TextWriter; }
+            set { base.TextWriter = value; }
         }
     }
 }

@@ -1,62 +1,26 @@
-﻿using System;
-using System.IO.Abstractions.TestingHelpers;
+﻿using System.IO.Abstractions.TestingHelpers;
 using AddressProcessing.CSV;
 using NUnit.Framework;
 
 namespace AddressProcessing.Tests.CSV
 {
     [TestFixture]
-    public class CSVReaderWriterIntegrationTests
+    public class CSVReaderIntegrationTests
     {
         private string filename = "C:\\filename.txt";
 
         private MockFileSystem _fileSystem;
         private MockFileData _fileData;
 
-        private CSVReaderWriter _csvReaderWriter;
+        private CSVReader _csvReader;
 
         [SetUp]
         public void SetUp()
         {
             _fileSystem = new MockFileSystem();
-            var csvWriter = new CSVWriter(_fileSystem);
-            var csvReader = new CSVReader(_fileSystem);
-            _csvReaderWriter = new CSVReaderWriter(csvWriter, csvReader);
+            _csvReader = new CSVReader(_fileSystem);
         }
-
-        [Test]
-        public void Should_write_columns_to_file()
-        {
-            // Arrange
-            _fileData = new MockFileData("");
-            _fileSystem.AddFile(filename, _fileData);
-
-            // Act (grr - see notes)
-            _csvReaderWriter.Open(filename, CSVReaderWriter.Mode.Write);
-            _csvReaderWriter.Write("column1", "column2");
-            _csvReaderWriter.Close();
-
-            // Assert
-            var result = _fileSystem.FileInfo.FromFileName(filename).OpenText().ReadToEnd();
-            Assert.That(result, Is.EqualTo("column1\tcolumn2\r\n"), "It should format and write the given values to the output file");
-        }
-
-        [Test]
-        public void Should_return_true_when_reading_correctly_formatted_file()
-        {
-            // Arrange
-            _fileData = new MockFileData("column1\tcolumn2\r\n");
-            _fileSystem.AddFile(filename, _fileData);
-
-            // Act
-            _csvReaderWriter.Open(filename, CSVReaderWriter.Mode.Read);
-            var result = _csvReaderWriter.Read("apparentlyUnused1", "apparentlyUnused2");
-            _csvReaderWriter.Close();
-
-            // Assert
-            Assert.That(result, Is.True, "It should return true");
-        }
-
+        
         [Test]
         public void Should_return_false_when_reading_out_empty_file()
         {
@@ -65,28 +29,29 @@ namespace AddressProcessing.Tests.CSV
             _fileSystem.AddFile(filename, _fileData);
 
             // Act
-            _csvReaderWriter.Open(filename, CSVReaderWriter.Mode.Read);
+            _csvReader.Open(filename);
             string column1;
             string column2;
-            var result = _csvReaderWriter.Read(out column1, out column2);
-            _csvReaderWriter.Close();
+            var result = _csvReader.Read(out column1, out column2);
+            _csvReader.Close();
 
             // Assert
             Assert.That(result, Is.False, "It should return false");
         }
 
         [Test]
-        public void Should_throw_when_reading_out_incorrectly_formatted_file()
+        public void Should_return_false_when_reading_out_incorrectly_formatted_file()
         {
             // Arrange
             _fileData = new MockFileData(" ");
             _fileSystem.AddFile(filename, _fileData);
 
-            // Assert on Act
-            _csvReaderWriter.Open(filename, CSVReaderWriter.Mode.Read);
+            // Act
+            _csvReader.Open(filename);
             string column1;
             string column2;
-            var result = _csvReaderWriter.Read(out column1, out column2);
+            var result = _csvReader.Read(out column1, out column2);
+            _csvReader.Close();
 
             // Assert
             Assert.That(result, Is.False, "It should return false");
@@ -100,11 +65,11 @@ namespace AddressProcessing.Tests.CSV
             _fileSystem.AddFile(filename, _fileData);
 
             // Act
-            _csvReaderWriter.Open(filename, CSVReaderWriter.Mode.Read);
+            _csvReader.Open(filename);
             string column1;
             string column2;
-            var result = _csvReaderWriter.Read(out column1, out column2);
-            _csvReaderWriter.Close();
+            var result = _csvReader.Read(out column1, out column2);
+            _csvReader.Close();
 
             // Assert
             Assert.That(result, Is.True, "It should return true");
@@ -120,14 +85,14 @@ namespace AddressProcessing.Tests.CSV
             _fileSystem.AddFile(filename, _fileData);
 
             // Act
-            _csvReaderWriter.Open(filename, CSVReaderWriter.Mode.Read);
+            _csvReader.Open(filename);
             string column1A;
             string column2A;
-            var resultA = _csvReaderWriter.Read(out column1A, out column2A);
+            var resultA = _csvReader.Read(out column1A, out column2A);
             string column1B;
             string column2B;
-            var resultB = _csvReaderWriter.Read(out column1B, out column2B);
-            _csvReaderWriter.Close();
+            var resultB = _csvReader.Read(out column1B, out column2B);
+            _csvReader.Close();
 
             // Assert
             Assert.That(resultA, Is.True, "It should return true when parsing the first line");

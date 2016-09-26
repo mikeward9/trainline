@@ -74,8 +74,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AddressFileProcessorTests.cs" />
-    <Compile Include="CSV\CSVReaderTests.cs" />
+    <Compile Include="CSV\CSVReaderIntegrationTests.cs" />
+    <Compile Include="CSV\CSVReaderWriterTests.cs" />
     <Compile Include="CSV\CSVReaderWriterIntegrationTests.cs" />
+    <Compile Include="CSV\CSVWriterIntegrationTests.cs" />
+    <Compile Include="CSV\CSVReaderTests.cs" />
     <Compile Include="CSV\CSVWriterTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

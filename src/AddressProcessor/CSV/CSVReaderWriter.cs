@@ -11,19 +11,17 @@ namespace AddressProcessing.CSV
     [Obsolete("Obsolete - use CSVReader and CSVWriter instead")]
     public class CSVReaderWriter
     {
-        private readonly IFileSystem _fileSystem;
         private readonly ICSVWriter _csvWriter;
         private readonly ICSVReader _csvReader;
 
-        public CSVReaderWriter() : this(new FileSystem(), new CSVWriter(), new CSVReader())
+        public CSVReaderWriter() : this(new CSVWriter(new FileSystem()), new CSVReader(new FileSystem()))
         {
         }
 
-        public CSVReaderWriter(IFileSystem fileSystem, ICSVWriter csvWriter, ICSVReader csvReader)
+        public CSVReaderWriter(ICSVWriter csvWriter, ICSVReader csvReader)
         {
             _csvWriter = csvWriter;
             _csvReader = csvReader;
-            _fileSystem = fileSystem;
         }
 
         [Flags]
@@ -34,10 +32,10 @@ namespace AddressProcessing.CSV
             switch (mode)
             {
                 case Mode.Read:
-                    _csvReader.Open(_fileSystem, fileName);
+                    _csvReader.Open(fileName);
                     break;
                 case Mode.Write:
-                    _csvWriter.Open(_fileSystem, fileName);
+                    _csvWriter.Open(fileName);
                     break;
                 default:
                     throw new Exception("Unknown file mode for " + fileName);

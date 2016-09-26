@@ -1,6 +1,7 @@
-﻿using System;
-using System.IO.Abstractions.TestingHelpers;
+﻿using System.IO;
+using System.IO.Abstractions;
 using AddressProcessing.CSV;
+using Moq;
 using NUnit.Framework;
 
 namespace AddressProcessing.Tests.CSV
@@ -8,101 +9,112 @@ namespace AddressProcessing.Tests.CSV
     [TestFixture]
     public class CSVReaderTests
     {
-        private string filename = "C:\\filename.txt";
-
-        private MockFileSystem _fileSystem;
-        private MockFileData _fileData;
-
-        private CSVReader _csvReader;
+        private CSVReaderTestDouble _csvReader;
+        private Mock<IFileSystem> _fileSystem;
 
         [SetUp]
         public void SetUp()
         {
-            _fileSystem = new MockFileSystem();
-            _csvReader = new CSVReader();
-        }
-        
-        [Test]
-        public void Should_return_false_when_reading_out_empty_file()
-        {
-            // Arrange
-            _fileData = new MockFileData("");
-            _fileSystem.AddFile(filename, _fileData);
-
-            // Act
-            _csvReader.Open(_fileSystem, filename);
-            string column1;
-            string column2;
-            var result = _csvReader.Read(out column1, out column2);
-            _csvReader.Close();
-
-            // Assert
-            Assert.That(result, Is.False, "It should return false");
+            _fileSystem = new Mock<IFileSystem>();
+            _csvReader = new CSVReaderTestDouble(_fileSystem.Object);
         }
 
         [Test]
-        public void Should_return_false_when_reading_out_incorrectly_formatted_file()
+        public void Should_create_TextWriter_from_file_when_opening()
         {
             // Arrange
-            _fileData = new MockFileData(" ");
-            _fileSystem.AddFile(filename, _fileData);
+            var streamFromFile = new StreamReader("notempty");
+            _fileSystem.Setup(x => x.File.OpenText("filename.txt")).Returns(streamFromFile);
 
             // Act
-            _csvReader.Open(_fileSystem, filename);
-            string column1;
-            string column2;
-            var result = _csvReader.Read(out column1, out column2);
-            _csvReader.Close();
+            _csvReader.Open("filename.txt");
 
-            // Assert
-            Assert.That(result, Is.False, "It should return false");
+            // Asserrt
+            Assert.That(_csvReader.TextReader, Is.SameAs(streamFromFile), "It should create the TextReader using the specified file");
         }
 
         [Test]
-        public void Should_return_true_and_populate_out_parameters_when_reading_out_correctly_formatted_file()
+        public void Should_parse_corectly_formatted_data_from_TextReader()
         {
             // Arrange
-            _fileData = new MockFileData("column1\tcolumn2\r\n");
-            _fileSystem.AddFile(filename, _fileData);
+            var textReader = new Mock<TextReader>();
+            textReader.Setup(x => x.ReadLine()).Returns("column1\tcolumn2");
+            _csvReader.TextReader = textReader.Object;
 
             // Act
-            _csvReader.Open(_fileSystem, filename);
             string column1;
             string column2;
             var result = _csvReader.Read(out column1, out column2);
-            _csvReader.Close();
 
             // Assert
             Assert.That(result, Is.True, "It should return true");
-            Assert.That(column1, Is.EqualTo("column1"), "It should populate the first column parameter with the first value read from the line");
-            Assert.That(column2, Is.EqualTo("column2"), "It should populate the second column parameter with the second value read from the line");
+            Assert.That(column1, Is.EqualTo("column1"), "It should correctly parse the first column");
+            Assert.That(column2, Is.EqualTo("column2"), "It should correctly parse the second column");
         }
 
         [Test]
-        public void Should_return_true_and_populate_out_parameters_when_reading_out_correctly_formatted_multiline_file()
+        public void Should_not_parse_empty_data_from_TextReader()
         {
             // Arrange
-            _fileData = new MockFileData("column1a\tcolumn2a\r\ncolumn1b\tcolumn2b\r\n");
-            _fileSystem.AddFile(filename, _fileData);
+            var textReader = new Mock<TextReader>();
+            textReader.Setup(x => x.ReadLine()).Returns((string)null);
+            _csvReader.TextReader = textReader.Object;
 
             // Act
-            _csvReader.Open(_fileSystem, filename);
-            string column1A;
-            string column2A;
-            var resultA = _csvReader.Read(out column1A, out column2A);
-            string column1B;
-            string column2B;
-            var resultB = _csvReader.Read(out column1B, out column2B);
+            string column1;
+            string column2;
+            var result = _csvReader.Read(out column1, out column2);
+
+            // Assert
+            Assert.That(result, Is.False, "It should return false");
+            Assert.That(column1, Is.Null, "It should return null for the first column");
+            Assert.That(column2, Is.Null, "It should return null for the second column");
+        }
+
+        [Test]
+        public void Should_not_parse_incorrectly_formatted_data_from_TextReader()
+        {
+            // Arrange
+            var textReader = new Mock<TextReader>();
+            textReader.Setup(x => x.ReadLine()).Returns("something unexpected");
+            _csvReader.TextReader = textReader.Object;
+
+            // Act
+            string column1;
+            string column2;
+            var result = _csvReader.Read(out column1, out column2);
+
+            // Assert
+            Assert.That(result, Is.False);
+            Assert.That(column1, Is.Null, "It should return null for the first column");
+            Assert.That(column2, Is.Null, "It should return null for the second column");
+        }
+
+        [Test]
+        public void Should_close_TextReader_on_close()
+        {
+            // Arrange
+            var textReader = new Mock<TextReader>();
+            _csvReader.TextReader = textReader.Object;
+
+            //Act
             _csvReader.Close();
 
             // Assert
-            Assert.That(resultA, Is.True, "It should return true when parsing the first line");
-            Assert.That(column1A, Is.EqualTo("column1a"), "It should populate the first column parameter with the correct value");
-            Assert.That(column2A, Is.EqualTo("column2a"), "It should populate the second column parameter with the correct value");
+            textReader.Verify(x => x.Close(), "It should close the TextReader");
+        }
+    }
 
-            Assert.That(resultB, Is.True, "It should return true when parsing the second line");
-            Assert.That(column1B, Is.EqualTo("column1b"), "It should populate the first column parameter with the correct value");
-            Assert.That(column2B, Is.EqualTo("column2b"), "It should populate the second column parameter with the correct value");
+    public class CSVReaderTestDouble : CSVReader
+    {
+        public CSVReaderTestDouble(IFileSystem fileSystem) : base(fileSystem)
+        {
+        }
+
+        public TextReader TextReader
+        {
+            get { return base.TextReader; }
+            set { base.TextReader = value; }
         }
     }
 }
