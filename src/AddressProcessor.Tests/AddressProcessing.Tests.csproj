@@ -74,12 +74,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AddressFileProcessorTests.cs" />
-    <Compile Include="CSV\CSVReaderIntegrationTests.cs" />
-    <Compile Include="CSV\CSVReaderWriterTests.cs" />
-    <Compile Include="CSV\CSVReaderWriterIntegrationTests.cs" />
-    <Compile Include="CSV\CSVWriterIntegrationTests.cs" />
-    <Compile Include="CSV\CSVReaderTests.cs" />
-    <Compile Include="CSV\CSVWriterTests.cs" />
+    <Compile Include="CSV\Integration\CSVReaderTests.cs" />
+    <Compile Include="CSV\Unit\CSVReaderWriterTests.cs" />
+    <Compile Include="CSV\Integration\CSVReaderWriterTests.cs" />
+    <Compile Include="CSV\Integration\CSVWriterTests.cs" />
+    <Compile Include="CSV\Unit\CSVReaderTests.cs" />
+    <Compile Include="CSV\Unit\CSVWriterTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

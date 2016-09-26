@@ -2,12 +2,12 @@
 using AddressProcessing.CSV;
 using NUnit.Framework;
 
-namespace AddressProcessing.Tests.CSV
+namespace AddressProcessing.Tests.CSV.Integration
 {
     [TestFixture]
-    public class CSVReaderIntegrationTests
+    public class CSVReaderTests
     {
-        private string filename = "C:\\filename.txt";
+        private const string Filename = "C:\\filename.txt";
 
         private MockFileSystem _fileSystem;
         private MockFileData _fileData;
@@ -26,10 +26,10 @@ namespace AddressProcessing.Tests.CSV
         {
             // Arrange
             _fileData = new MockFileData("");
-            _fileSystem.AddFile(filename, _fileData);
+            _fileSystem.AddFile(Filename, _fileData);
 
             // Act
-            _csvReader.Open(filename);
+            _csvReader.Open(Filename);
             string column1;
             string column2;
             var result = _csvReader.Read(out column1, out column2);
@@ -44,10 +44,10 @@ namespace AddressProcessing.Tests.CSV
         {
             // Arrange
             _fileData = new MockFileData(" ");
-            _fileSystem.AddFile(filename, _fileData);
+            _fileSystem.AddFile(Filename, _fileData);
 
             // Act
-            _csvReader.Open(filename);
+            _csvReader.Open(Filename);
             string column1;
             string column2;
             var result = _csvReader.Read(out column1, out column2);
@@ -62,10 +62,10 @@ namespace AddressProcessing.Tests.CSV
         {
             // Arrange
             _fileData = new MockFileData("column1\tcolumn2\r\n");
-            _fileSystem.AddFile(filename, _fileData);
+            _fileSystem.AddFile(Filename, _fileData);
 
             // Act
-            _csvReader.Open(filename);
+            _csvReader.Open(Filename);
             string column1;
             string column2;
             var result = _csvReader.Read(out column1, out column2);
@@ -82,10 +82,10 @@ namespace AddressProcessing.Tests.CSV
         {
             // Arrange
             _fileData = new MockFileData("column1a\tcolumn2a\r\ncolumn1b\tcolumn2b\r\n");
-            _fileSystem.AddFile(filename, _fileData);
+            _fileSystem.AddFile(Filename, _fileData);
 
             // Act
-            _csvReader.Open(filename);
+            _csvReader.Open(Filename);
             string column1A;
             string column2A;
             var resultA = _csvReader.Read(out column1A, out column2A);

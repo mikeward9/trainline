@@ -1,14 +1,13 @@
-﻿using System;
-using System.IO.Abstractions.TestingHelpers;
+﻿using System.IO.Abstractions.TestingHelpers;
 using AddressProcessing.CSV;
 using NUnit.Framework;
 
-namespace AddressProcessing.Tests.CSV
+namespace AddressProcessing.Tests.CSV.Integration
 {
     [TestFixture]
-    public class CSVReaderWriterIntegrationTests
+    public class CSVReaderWriterTests
     {
-        private string filename = "C:\\filename.txt";
+        private const string Filename = "C:\\filename.txt";
 
         private MockFileSystem _fileSystem;
         private MockFileData _fileData;
@@ -29,15 +28,15 @@ namespace AddressProcessing.Tests.CSV
         {
             // Arrange
             _fileData = new MockFileData("");
-            _fileSystem.AddFile(filename, _fileData);
+            _fileSystem.AddFile(Filename, _fileData);
 
             // Act (grr - see notes)
-            _csvReaderWriter.Open(filename, CSVReaderWriter.Mode.Write);
+            _csvReaderWriter.Open(Filename, CSVReaderWriter.Mode.Write);
             _csvReaderWriter.Write("column1", "column2");
             _csvReaderWriter.Close();
 
             // Assert
-            var result = _fileSystem.FileInfo.FromFileName(filename).OpenText().ReadToEnd();
+            var result = _fileSystem.FileInfo.FromFileName(Filename).OpenText().ReadToEnd();
             Assert.That(result, Is.EqualTo("column1\tcolumn2\r\n"), "It should format and write the given values to the output file");
         }
 
@@ -46,10 +45,10 @@ namespace AddressProcessing.Tests.CSV
         {
             // Arrange
             _fileData = new MockFileData("column1\tcolumn2\r\n");
-            _fileSystem.AddFile(filename, _fileData);
+            _fileSystem.AddFile(Filename, _fileData);
 
             // Act
-            _csvReaderWriter.Open(filename, CSVReaderWriter.Mode.Read);
+            _csvReaderWriter.Open(Filename, CSVReaderWriter.Mode.Read);
             var result = _csvReaderWriter.Read("apparentlyUnused1", "apparentlyUnused2");
             _csvReaderWriter.Close();
 
@@ -62,10 +61,10 @@ namespace AddressProcessing.Tests.CSV
         {
             // Arrange
             _fileData = new MockFileData("");
-            _fileSystem.AddFile(filename, _fileData);
+            _fileSystem.AddFile(Filename, _fileData);
 
             // Act
-            _csvReaderWriter.Open(filename, CSVReaderWriter.Mode.Read);
+            _csvReaderWriter.Open(Filename, CSVReaderWriter.Mode.Read);
             string column1;
             string column2;
             var result = _csvReaderWriter.Read(out column1, out column2);
@@ -80,10 +79,10 @@ namespace AddressProcessing.Tests.CSV
         {
             // Arrange
             _fileData = new MockFileData(" ");
-            _fileSystem.AddFile(filename, _fileData);
+            _fileSystem.AddFile(Filename, _fileData);
 
             // Assert on Act
-            _csvReaderWriter.Open(filename, CSVReaderWriter.Mode.Read);
+            _csvReaderWriter.Open(Filename, CSVReaderWriter.Mode.Read);
             string column1;
             string column2;
             var result = _csvReaderWriter.Read(out column1, out column2);
@@ -97,10 +96,10 @@ namespace AddressProcessing.Tests.CSV
         {
             // Arrange
             _fileData = new MockFileData("column1\tcolumn2\r\n");
-            _fileSystem.AddFile(filename, _fileData);
+            _fileSystem.AddFile(Filename, _fileData);
 
             // Act
-            _csvReaderWriter.Open(filename, CSVReaderWriter.Mode.Read);
+            _csvReaderWriter.Open(Filename, CSVReaderWriter.Mode.Read);
             string column1;
             string column2;
             var result = _csvReaderWriter.Read(out column1, out column2);
@@ -117,10 +116,10 @@ namespace AddressProcessing.Tests.CSV
         {
             // Arrange
             _fileData = new MockFileData("column1a\tcolumn2a\r\ncolumn1b\tcolumn2b\r\n");
-            _fileSystem.AddFile(filename, _fileData);
+            _fileSystem.AddFile(Filename, _fileData);
 
             // Act
-            _csvReaderWriter.Open(filename, CSVReaderWriter.Mode.Read);
+            _csvReaderWriter.Open(Filename, CSVReaderWriter.Mode.Read);
             string column1A;
             string column2A;
             var resultA = _csvReaderWriter.Read(out column1A, out column2A);

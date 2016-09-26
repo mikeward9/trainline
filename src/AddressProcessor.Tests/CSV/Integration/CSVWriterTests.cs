@@ -3,12 +3,12 @@ using System.IO.Abstractions.TestingHelpers;
 using AddressProcessing.CSV;
 using NUnit.Framework;
 
-namespace AddressProcessing.Tests.CSV
+namespace AddressProcessing.Tests.CSV.Integration
 {
     [TestFixture]
-    public class CSVWriterIntegrationTests
+    public class CSVWriterTests
     {
-        private string filename = "C:\\filename.txt";
+        private const string Filename = "C:\\filename.txt";
 
         private MockFileSystem _fileSystem;
 
@@ -19,7 +19,7 @@ namespace AddressProcessing.Tests.CSV
         {
             _fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { filename, new MockFileData("") }
+                { Filename, new MockFileData("") }
             });
 
             _csvWriter = new CSVWriter(_fileSystem);
@@ -31,12 +31,12 @@ namespace AddressProcessing.Tests.CSV
             // Arrange
 
             // Act
-            _csvWriter.Open(filename);
+            _csvWriter.Open(Filename);
             _csvWriter.Write("column1", "column2");
             _csvWriter.Close();
 
             // Assert
-            var result = _fileSystem.FileInfo.FromFileName(filename).OpenText().ReadToEnd();
+            var result = _fileSystem.FileInfo.FromFileName(Filename).OpenText().ReadToEnd();
             Assert.That(result, Is.EqualTo("column1\tcolumn2\r\n"), "It should format and write the given values to the output file");
         }
 
@@ -46,13 +46,13 @@ namespace AddressProcessing.Tests.CSV
             // Arrange
 
             // Act
-            _csvWriter.Open(filename);
+            _csvWriter.Open(Filename);
             _csvWriter.Write("column1a", "column2a");
             _csvWriter.Write("column1b", "column2b");
             _csvWriter.Close();
 
             // Assert
-            var result = _fileSystem.FileInfo.FromFileName(filename).OpenText().ReadToEnd();
+            var result = _fileSystem.FileInfo.FromFileName(Filename).OpenText().ReadToEnd();
             Assert.That(result, Is.EqualTo("column1a\tcolumn2a\r\ncolumn1b\tcolumn2b\r\n"), "It should format and write the given values to the output file");
         }
     }

@@ -3,7 +3,7 @@ using AddressProcessing.CSV;
 using Moq;
 using NUnit.Framework;
 
-namespace AddressProcessing.Tests.CSV
+namespace AddressProcessing.Tests.CSV.Unit
 {
     [TestFixture]
     public class CSVReaderWriterTests
