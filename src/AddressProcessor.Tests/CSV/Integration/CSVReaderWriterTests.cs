@@ -30,7 +30,7 @@ namespace AddressProcessing.Tests.CSV.Integration
             _fileData = new MockFileData("");
             _fileSystem.AddFile(Filename, _fileData);
 
-            // Act (grr - see notes)
+            // Act
             _csvReaderWriter.Open(Filename, CSVReaderWriter.Mode.Write);
             _csvReaderWriter.Write("column1", "column2");
             _csvReaderWriter.Close();
